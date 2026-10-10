@@ -4,6 +4,6 @@ Página web de FLORÉA, florería de lujo en Phoenix, AZ. Una sola página (`ind
 
 - `index.html` — todo el sitio. Lo que se edita cada temporada está al inicio del script (`EVENTS`, `HERO`, `REVIEWS`, `DATA`, `PACKAGES`, `FUN_GROUPS`, `CHECKOUT_LIVE`).
 - `images/` — fotos grandes; `images/t/` miniaturas ligeras; `images/funeral/` colección funeraria; `images/bri/` video y póster de Bri.
-- `netlify.toml` — publicación en Netlify (sin build).
+- Publicada con GitHub Pages (rama `main`, carpeta raíz): https://josuealexis4life-dot.github.io/FLOREA-WEBSITE/ — cada push a `main` la actualiza.
 
 Las páginas anteriores (catálogo, carrito, kids, servicios, mayoreo) quedan en el historial de git.
