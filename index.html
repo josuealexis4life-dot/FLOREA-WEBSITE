@@ -712,7 +712,7 @@
       <p class="eyebrow" data-en="Delivery">Entregas</p>
       <h3 data-en="Pick up, home delivery or Uber Direct">Recoge, a domicilio o Uber Direct</h3>
       <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg><span data-en="Pick up at the shop: free, during business hours.">Recoger en la florería: gratis, en horario de tienda.</span></div>
-      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg><span data-en="FLORÉA delivery by distance ($1.25 per mile, $5 minimum). Orders before 2 PM arrive today; after 2 PM, the next day.">Entrega FLORÉA por distancia ($1.25 por milla, mínimo $5). Pedidos antes de 2 PM llegan hoy; después de 2 PM, al día siguiente.</span></div>
+      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg><span data-en="FLORÉA delivery by distance from our shop, calculated at checkout with your address. Orders before 2 PM arrive today; after 2 PM, the next day.">Entrega FLORÉA por distancia desde la florería; se calcula en el pago con tu dirección. Pedidos antes de 2 PM llegan hoy; después de 2 PM, al día siguiente.</span></div>
       <div class="rates" id="ratesVisit"></div>
       <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg><span data-en="Uber Direct (express) until 7 PM: you pay the trip to your address; we confirm the exact cost on WhatsApp.">Uber Direct (express) hasta las 7 PM: tú pagas el viaje a tu dirección; te confirmamos el costo exacto por WhatsApp.</span></div>
       <hr class="rule" style="margin:4px 0">
@@ -792,9 +792,9 @@
         <label class="opt"><input type="radio" name="del" id="delPickup" value="pickup" checked>
           <span><b data-en="Pick up at FLORÉA">Recoger en FLORÉA</b><small>4013 N 75th Ave, Phoenix</small></span><span class="tag" data-en="Free">Gratis</span></label>
         <label class="opt"><input type="radio" name="del" id="delLocal" value="local">
-          <span><b data-en="FLORÉA delivery">Entrega FLORÉA a domicilio</b><small data-en="Order before 2 PM for same day. Cost by distance, calculated with your address.">Pide antes de 2 PM para hoy. Costo por distancia según tu dirección.</small></span><span class="tag" data-en="from $5">desde $5</span></label>
+          <span><b data-en="FLORÉA delivery">Entrega FLORÉA a domicilio</b><small data-en="Order before 2 PM for same day. Cost by distance, calculated with your address.">Pide antes de 2 PM para hoy. Costo por distancia según tu dirección.</small></span><span class="tag" data-en="from $10">desde $10</span></label>
         <label class="opt"><input type="radio" name="del" id="delUber" value="uber">
-          <span><b>Uber Direct · express</b><small data-en="Until 7 PM. You pay the Uber trip to your address; we confirm the exact cost on WhatsApp before sending.">Hasta las 7 PM. Tú pagas el viaje de Uber a tu dirección; te confirmamos el costo exacto por WhatsApp antes de enviarlo.</small></span><span class="tag" data-en="Varies">Variable</span></label>
+          <span><b>Uber Direct · express</b><small data-en="Until 7 PM. The Uber picks up your arrangement at our shop, so at checkout choose “Pick up”. You pay the Uber trip separately; we confirm the exact cost on WhatsApp before sending.">Hasta las 7 PM. El Uber pasa por tu arreglo a la florería, así que en el pago elige “Recoger en tienda”. El viaje de Uber se paga aparte; te confirmamos el costo exacto por WhatsApp antes de enviarlo.</small></span><span class="tag" data-en="Varies">Variable</span></label>
         <div class="rates" id="ratesCart" hidden></div>
       </fieldset>
       <fieldset class="svc-box" id="svcBox" hidden>
@@ -877,8 +877,9 @@
   const WHATSAPP = '16029002348';
   const SHOP = 'https://2fabbb-dq.myshopify.com';
   // false = el botón final manda el pedido por WhatsApp. Cambiar a true cuando Shopify tenga pagos activos y sin contraseña.
-  const CHECKOUT_LIVE = false;
-  const RATES = [[4, 5], [8, 10], [12, 15], [16, 20], [20, 25]]; // [hasta millas, precio]
+  const CHECKOUT_LIVE = true;
+  // Debe ser igual a Shopify → Envío y entrega → Entrega local (radio desde FLORÉA Phoenix)
+  const RATES = [[4, 10], [8, 15], [12, 20], [16, 25], [20, 30]]; // [hasta millas, precio]
   // Horas límite (hora de Phoenix, 24 h): después de esta hora, la fecha mínima pasa al día siguiente.
   const CUTOFF = { pickup: 20, local: 14, uber: 19 };
   const PICADO = true; // papel picado de temporada (Día de Muertos)
@@ -1034,7 +1035,7 @@
   const T = {
     es: { pause: 'Pausar giro', play: 'Girar solo', added: 'agregado al pedido', checkoutLive: 'Ir a pagar', checkoutWa: 'Enviar pedido por WhatsApp',
           empty: 'Tu pedido está vacío', emptySub: 'Elige un arreglo y agrégalo aquí.', seeColl: 'Ver colección', remove: 'Quitar', all: 'Todos',
-          addHero: 'Agregar al pedido', add: 'Agregar', seeAll: 'Ver colección', noteLive: 'El envío y los impuestos se calculan en el pago.', noteWa: 'Te confirmamos el total con envío por WhatsApp.',
+          addHero: 'Agregar al pedido', add: 'Agregar', seeAll: 'Ver colección', noteLive: 'El envío y los impuestos se calculan en el pago.', noteWa: 'Te confirmamos el total con envío por WhatsApp.', noteUber: 'En el pago elige “Recoger en tienda”: el Uber pasa por tu arreglo y el viaje se cobra aparte.',
           noteFun: 'Los paquetes funerarios incluyen entrega sin costo en el área de Phoenix.',
           errAddr: 'Escribe la dirección de entrega.', errDate: 'Elige una fecha disponible.', sample: 'Reseña de ejemplo', mi: 'mi', more: 'Más de 20 mi', quote: 'cotizar',
           hello: 'Hola FLORÉA', waAsk: 'Hola FLORÉA, quiero cotizar: ', msgCard: 'Mensaje para la tarjeta (opcional)', msgRibbon: 'Texto del listón / tarjeta',
@@ -1042,7 +1043,7 @@
           save: 'Ahorra', includes: 'Incluye', mostChosen: 'El más elegido', pkgAdd: 'Agregar paquete' },
     en: { pause: 'Pause spin', play: 'Auto spin', added: 'added to your order', checkoutLive: 'Checkout', checkoutWa: 'Send order on WhatsApp',
           empty: 'Your order is empty', emptySub: 'Pick an arrangement and add it here.', seeColl: 'View collection', remove: 'Remove', all: 'All',
-          addHero: 'Add to order', add: 'Add', seeAll: 'View collection', noteLive: 'Delivery and taxes are calculated at checkout.', noteWa: 'We confirm the total with delivery on WhatsApp.',
+          addHero: 'Add to order', add: 'Add', seeAll: 'View collection', noteLive: 'Delivery and taxes are calculated at checkout.', noteWa: 'We confirm the total with delivery on WhatsApp.', noteUber: 'At checkout choose “Pick up”: the Uber collects your arrangement and the trip is charged separately.',
           noteFun: 'Funeral packages include free delivery in the Phoenix area.',
           errAddr: 'Enter the delivery address.', errDate: 'Choose an available date.', sample: 'Sample review', mi: 'mi', more: 'Over 20 mi', quote: 'quote',
           hello: 'Hi FLORÉA', waAsk: 'Hi FLORÉA, I would like a quote for: ', msgCard: 'Card message (optional)', msgRibbon: 'Ribbon / card text',
@@ -1299,7 +1300,13 @@
     const fun = hasFun();
     $('svcBox').hidden = !fun;
     $('msgLabel').textContent = fun ? t('msgRibbon') : t('msgCard');
-    $('shipNote').textContent = (CHECKOUT_LIVE ? t('noteLive') : t('noteWa')) + (cart.some(l => PACKAGES.some(p => p.v === l.v)) ? ' ' + t('noteFun') : '');
+    updateShipNote();
+  }
+  function updateShipNote() {
+    const uber = CHECKOUT_LIVE && document.querySelector('input[name="del"]:checked')?.value === 'uber';
+    $('shipNote').textContent = (CHECKOUT_LIVE ? t('noteLive') : t('noteWa'))
+      + (uber ? ' ' + t('noteUber') : '')
+      + (cart.some(l => PACKAGES.some(p => p.v === l.v)) ? ' ' + t('noteFun') : '');
   }
   $('lines').onclick = e => {
     const b = e.target.closest('button, a'); if (!b) return;
@@ -1323,6 +1330,7 @@
     $('fDate').min = min;
     if (!$('fDate').value || $('fDate').value < min) $('fDate').value = min;
     $('dateHint').textContent = late ? t('hintTomorrow')[d] : t('hintToday');
+    updateShipNote();
   }
   document.querySelectorAll('input[name="del"]').forEach(r => r.addEventListener('change', syncDel));
   $('fMsg').addEventListener('input', () => $('msgCount').textContent = $('fMsg').value.length + ' / 250');
