@@ -1562,11 +1562,7 @@
     const FR = .035;
     const frameGeos = [new THREE.BoxGeometry(PW + FR * 2, FR, FR), new THREE.BoxGeometry(FR, PH, FR)];
 
-    const floorCanvas = document.createElement('canvas'); floorCanvas.width = floorCanvas.height = 256;
-    { const g = floorCanvas.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-      gr.addColorStop(0, 'rgba(27,44,79,.55)'); gr.addColorStop(.7, 'rgba(15,27,51,.75)'); gr.addColorStop(1, 'rgba(15,27,51,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(floorCanvas), transparent: true, depthWrite: false }));
-    floor.rotation.x = -Math.PI / 2; floor.renderOrder = 2; scene.add(floor);
+    // no floor disc: the carousel stands on the page background, with only the gold ring and the panel reflections
     const baseRing = new THREE.Mesh(new THREE.RingGeometry(1, 1.012, 128), new THREE.MeshBasicMaterial({ color: 0xc9a24b, transparent: true, opacity: .55, side: THREE.DoubleSide }));
     baseRing.rotation.x = -Math.PI / 2; baseRing.position.y = .003; baseRing.renderOrder = 3; scene.add(baseRing);
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, PH + LIFT * 2 + .4, 16), goldMat);
@@ -1587,7 +1583,7 @@
         logo.rotation.y = Math.PI; logo.position.set(0, CY, -.01); g.add(logo);
         [[0, CY + PH / 2 + FR / 2, 0], [0, CY - PH / 2 - FR / 2, 0]].forEach(p => { const m = new THREE.Mesh(frameGeos[0], goldMat); m.position.set(...p); g.add(m); });
         [[-PW / 2 - FR / 2, CY, 0], [PW / 2 + FR / 2, CY, 0]].forEach(p => { const m = new THREE.Mesh(frameGeos[1], goldMat); m.position.set(...p); g.add(m); });
-        const rmat = new THREE.MeshBasicMaterial({ map, alphaMap: fadeTex, transparent: true, opacity: .5, depthWrite: false, side: THREE.DoubleSide }); rmat.userData.own = true;
+        const rmat = new THREE.MeshBasicMaterial({ map, alphaMap: fadeTex, transparent: true, opacity: .22, depthWrite: false, side: THREE.DoubleSide }); rmat.userData.own = true;
         const refl = new THREE.Mesh(photoGeo, rmat); refl.position.y = -CY; refl.scale.y = -1; refl.renderOrder = 1; g.add(refl);
         return { g, photo, mat, rmat };
       });
@@ -1698,7 +1694,7 @@
       const fi = idxFrom(angle); if (fi !== frontIdx) { frontIdx = fi; show(fi); }
       panels.forEach((p, i) => {
         const a = mod(i * step + angle + Math.PI, Math.PI * 2) - Math.PI, f = Math.cos(a), k = THREE.MathUtils.smoothstep(f, .3, 1);
-        p.mat.color.setScalar(.28 + .72 * k); p.rmat.opacity = .12 + .38 * k; p.g.scale.setScalar(1 + .07 * Math.pow(Math.max(f, 0), 14));
+        p.mat.color.setScalar(.28 + .72 * k); p.rmat.opacity = .05 + .17 * k; p.g.scale.setScalar(1 + .07 * Math.pow(Math.max(f, 0), 14));
       });
       const r = canvas.getBoundingClientRect();
       const tx = pointer.on ? ((pointer.x - r.left) / r.width - .5) : Math.sin(tm * .25) * .15;
