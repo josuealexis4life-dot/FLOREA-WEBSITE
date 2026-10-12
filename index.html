@@ -139,6 +139,19 @@
   .ann-track { display: inline-flex; gap: 40px; animation: marquee 44s linear infinite; padding-left: 40px; }
   .ann span { font: 600 .66rem var(--sans); letter-spacing: .22em; text-transform: uppercase; color: #060d18; }
   .ann span::before { content: "◆"; opacity: .45; margin-right: 12px; }
+  /* "foil" version: metallic gold leaf with a slow light sweep and four-petal flowers between notices.
+     To go back to the plain gold ribbon, remove the word "foil" from <div class="ann foil">. */
+  .ann.foil { position: relative; padding-block: 10px;
+    background: linear-gradient(100deg, #9f7a2c 0%, #c9a24b 18%, #ecd590 38%, #d4b161 52%, #b8913f 70%, #e4c77a 86%, #a8822f 100%);
+    box-shadow: inset 0 1px 0 rgba(255,250,230,.45), inset 0 -1px 0 rgba(80,55,10,.35); }
+  .ann.foil::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255,252,238,.55) 50%, transparent 58%); background-size: 260% 100%; background-position: 160% 0;
+    animation: sheen 7s ease-in-out infinite; }
+  @keyframes sheen { 0%, 55% { background-position: 160% 0; } 100% { background-position: -60% 0; } }
+  .ann.foil span { font: 500 .66rem var(--sans); letter-spacing: .26em; color: var(--navy); display: inline-flex; align-items: center; }
+  .ann.foil span::before { content: ""; width: 12px; height: 12px; margin-right: 14px; opacity: .75;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-12 -12 24 24'%3E%3Cg fill='%230f1b33'%3E%3Cellipse rx='3.2' ry='9'/%3E%3Cellipse rx='3.2' ry='9' transform='rotate(90)'/%3E%3C/g%3E%3Ccircle r='2.4' fill='%23e4c77a'/%3E%3C/svg%3E") center / contain no-repeat; }
+  @media (prefers-reduced-motion: reduce) { .ann.foil::after { animation: none; } }
   @keyframes marquee { to { transform: translateX(-50%); } }
 
   /* Papel picado (shared) */
@@ -522,7 +535,7 @@
 </div>
 
 <!-- GOLD MARQUEE -->
-<div class="ann" aria-hidden="true"><div class="ann-track" id="ann"></div></div>
+<div class="ann foil" aria-hidden="true"><div class="ann-track" id="ann"></div></div>
 
 <!-- HERO -->
 <section class="hero" id="inicio">
@@ -696,7 +709,7 @@
       <p data-en="FLORÉA was born in Phoenix, Arizona with one mission: bring real floral elegance to every moment of life.">FLORÉA nació en Phoenix, Arizona con una sola misión: llevar elegancia floral auténtica a cada momento de la vida.</p>
       <p data-en="With FLORÉA KIDS we believe that teaching a child to give flowers plants a value for life.">Con FLORÉA KIDS creemos que enseñar a un niño a regalar flores es sembrar un valor para toda la vida.</p>
       <hr class="rule" style="margin:0">
-      <p class="quote">“Elegancia que florece contigo”</p>
+      <p class="quote" data-en="“Elegance that blooms with you”">“Elegancia que florece contigo”</p>
     </div>
     <div class="stats">
       <div class="stat"><b>100%</b><span data-en="Fresh flowers">Flores frescas</span></div>
@@ -819,7 +832,7 @@
         <legend data-en="Service details">Datos del servicio</legend>
         <div class="field">
           <label class="lbl" for="fHome" data-en="Funeral home or chapel">Funeraria o capilla</label>
-          <input id="fHome" autocomplete="off" placeholder="Nombre y dirección">
+          <input id="fHome" autocomplete="off" placeholder="Nombre y dirección" data-en-ph="Name and address">
         </div>
         <div class="field">
           <label class="lbl" for="fTime" data-en="Service time">Hora del servicio</label>
@@ -827,12 +840,12 @@
         </div>
         <div class="field">
           <label class="lbl" for="fMemory" data-en="In memory of">En memoria de</label>
-          <input id="fMemory" autocomplete="off" placeholder="Nombre del ser querido">
+          <input id="fMemory" autocomplete="off" placeholder="Nombre del ser querido" data-en-ph="Name of your loved one">
         </div>
       </fieldset>
       <div class="field" id="addrField" hidden>
         <label class="lbl" for="fAddr" data-en="Delivery address">Dirección de entrega</label>
-        <input id="fAddr" autocomplete="street-address" placeholder="Calle, número, ciudad, ZIP">
+        <input id="fAddr" autocomplete="street-address" placeholder="Calle, número, ciudad, ZIP" data-en-ph="Street, number, city, ZIP">
       </div>
       <div class="field">
         <label class="lbl" for="fDate" data-en="Date">Fecha</label>
@@ -841,16 +854,16 @@
       </div>
       <div class="field">
         <label class="lbl" for="fTo" data-en="For (recipient)">Para (quién lo recibe)</label>
-        <input id="fTo" autocomplete="off" placeholder="Nombre">
+        <input id="fTo" autocomplete="off" placeholder="Nombre" data-en-ph="Name">
       </div>
       <div class="field">
         <label class="lbl" for="fMsg" id="msgLabel">Mensaje para la tarjeta (opcional)</label>
-        <textarea id="fMsg" maxlength="250" placeholder="Lo escribimos a mano"></textarea>
+        <textarea id="fMsg" maxlength="250" placeholder="Lo escribimos a mano" data-en-ph="We handwrite it for you"></textarea>
         <span class="small count-r" id="msgCount">0 / 250</span>
       </div>
       <div class="field">
         <label class="lbl" for="fFrom" data-en="From">De parte de</label>
-        <input id="fFrom" autocomplete="name" placeholder="Tu nombre">
+        <input id="fFrom" autocomplete="name" placeholder="Tu nombre" data-en-ph="Your name">
       </div>
     </div>
   </form>
@@ -984,6 +997,75 @@
     {cat:'Flores Amarillas',img:'simplemente-girasoles.jpg',name:'Simplemente Girasoles',price:70,v:'67753582100674',desc:'Un ramo sencillo de girasoles envuelto en kraft con listón. Puro y directo, para alegrar cualquier día.'}
   ];
 
+  // Traducciones al inglés (los nombres de los arreglos se quedan en español: son nombres de la marca)
+  const CAT_EN = { 'Románticos': 'Romantic', 'Ramo de 50 Rosas': '50-Rose Bouquets', 'Con Peluche': 'With a Plush', 'Alegres & Vibrantes': 'Bright & Cheerful',
+    'Elegancia Premium': 'Premium Elegance', 'Condolencias': 'Sympathy', 'Flores Amarillas': 'Yellow Flowers' };
+  const BADGE_EN = { 'Detalle económico': 'Budget-friendly', 'Peluche puede variar': 'Plush may vary', 'El más solicitado': 'Most requested', 'El más duradero': 'Longest-lasting' };
+  const SIZE_EN = { 'Chico': 'Small', 'Mediano': 'Medium', 'Grande': 'Large' };
+  const DESC_EN = {
+    'Susurro de Primavera': 'Pastel roses, peonies, ranunculus and eucalyptus in a soft, romantic bouquet. Perfect for conveying calm and elegance.',
+    'Cielo de Rosas y Sueños': 'White and pink roses with delicate baby’s breath, wrapped in sky-pink paper with gold details.',
+    'Rubíes en Flor': 'Three premium red roses in a glass vase with solidago and greenery. A simple, elegant gesture.',
+    'Elegancia Rubí en Jarrón': 'Velvety red and white roses with orange alstroemeria, gypsophila and greenery, in a burgundy vase with a gold bow.',
+    'Melodía de Malva y Rosas': 'Blush and mauve roses, a mauve tulip, pink ranunculus and fresh eucalyptus in a glass vase.',
+    'Sinfonía Carmesí y Lavanda': 'Deep red and pastel pink roses with lavender sprigs and white baby’s breath, in a conical vase with a beige bow.',
+    'Sinfonía de Primavera': 'Pink and white ranunculus, spray roses, white delphinium and daisies with fresh eucalyptus.',
+    'Elegancia Eterna': 'Velvety red roses and white tulips with gypsophila, eucalyptus and ruscus. Ideal for anniversaries.',
+    'Para Siempre Amor': 'Red roses and yellow tulips with baby’s breath, wrapped in ivory lace paper.',
+    'Picnic de Rosas': 'Red roses and yellow tulips with baby’s breath, wrapped in red-and-white gingham paper. Rustic and cheerful.',
+    'Cincuenta Rosas Rojas': 'Fifty premium red roses with gold butterflies, wrapped in lace paper with an orange ribbon.',
+    'Corona de Cumpleaños': 'Pastel pink and cream roses with lilies, crowned with a decorative tiara and silver butterflies. Includes a customizable birthday ribbon.',
+    'Amor Eterno en Rosas': 'Red and pastel pink roses with a gold tiara, butterflies and a “Love is Eternal” ribbon, in butterfly-print paper.',
+    'Cincuenta Rosas Dramáticas': 'Fifty red roses with gold butterflies, wrapped in black and gold paper with a black floral ribbon and a heart detail.',
+    'Abrazo de Amor Floreal': 'Velvety red roses and white baby’s breath with an adorable plush bear. Each Floréa Bear is unique and may vary with availability.',
+    'Peluche de Pétalos': 'A hand-sculpted puppy of white carnations, surrounded by pink roses, daisies and carnations, in a pastel pink gift bag.',
+    'Guardián del Amor en Caja': 'Premium red roses in a pyramid design with baby’s breath and greenery, in an elegant black box. Includes a plush gift; style may vary.',
+    'Mariposa Solar en Gala de Rosas': 'Red roses around a central sunflower with delicate gold butterflies, wrapped in white gala paper.',
+    'Alas de Oro y Terciopelo Escarlata': 'Deep velvet red roses and baby’s breath, wrapped in white and gold vellum with laser-cut gold butterflies.',
+    'Luz del Sol Rústica': 'Vibrant sunflowers wrapped in rustic kraft paper with a taupe ribbon. Minimal, warm and natural.',
+    'Serenidad Lavanda y Pastel': 'Lavender roses, pink gerberas, purple larkspur and yellow ranunculus, with a lilac linen bow.',
+    'Aria de Rosas y Gerberas': 'A white hatbox with a gold rim holding red and peach roses, white gerberas and green chrysanthemums.',
+    'Medianoche Gilded y Carmesí': 'Abundant velvet red roses and white baby’s breath, wrapped in matte black paper with a gold edge.',
+    'Gala Blanca y Dorada': 'Pink roses, two-tone tulips, alstroemeria and white lisianthus with eucalyptus, in white paper with a gold edge.',
+    'Paz Eterna': 'Twelve white roses with eucalyptus and wax flower in a glass vase. A serene, elegant tribute.',
+    'Cielo Sereno': 'White roses, alstroemeria, carnations and light blue delphinium with eucalyptus. A gentle, peaceful tribute.',
+    'Luz de Consuelo': 'White roses, lilies, daisies and snapdragons with mixed greenery in a generous arrangement. Ideal for memorial services.',
+    'Amanecer Dorado': 'A wildflower-style bouquet of yellow roses and chrysanthemums with white accents, unwrapped to show off its natural color.',
+    'Caja Just Love You': 'A luxury round box of yellow roses and white flowers, ready to gift with a personalized “Just Love You” ribbon.',
+    'Amigo Fiel': 'A sweet puppy-shaped arrangement of white carnations with yellow flowers and gold butterflies. A gift with personality.',
+    'Docena Dorada': 'A dozen yellow roses wrapped in white paper with a gold edge and decorative butterflies. Classic elegance for any occasion.',
+    'Campo Amarillo': 'Sunflowers and white daisies wrapped in kraft paper, fresh and countryside-inspired.',
+    'Sol y Nieve': 'A large bouquet of intertwined yellow and white roses, wrapped in kraft with a gold ribbon. Abundant and eye-catching.',
+    'Girasoles de Campo': 'Six fresh sunflowers with white chamomile, wrapped in kraft and tied with natural twine.',
+    'Simplemente Girasoles': 'A simple sunflower bouquet wrapped in kraft with a ribbon. Pure and direct, to brighten any day.',
+    'Cubrecaja Chico': 'A compact dome of white roses, lilies and chrysanthemums with ivy and eucalyptus.',
+    'Cubrecaja Mediano': 'Half couch. Roses, lilies and chrysanthemums in an abundant cascade.',
+    'Cubrecaja Grande': 'Full couch. Calla lilies, roses and lilies with ivy trailing down both sides.',
+    'Standing Spray Clásico': 'Roses, lilies, chrysanthemums and fresh greenery on an easel. White, blue and white, lavender, pastel or red and white.',
+    'Spray Blanco Angelical': 'All-white flowers: roses, lilies and chrysanthemums. The most solemn, timeless choice.',
+    'Spray Pastel Sereno': 'Roses in pink, peach and lavender. A warm farewell for a life full of light.',
+    'Cruz de Pie Blanca': 'White roses and chrysanthemums on a standing cross. Simple and luminous.',
+    'Cruz Azul y Blanca': 'White flowers with a central cascade of blue delphinium. Peace and prayer.',
+    'Corona Funeraria Blanca': 'The eternal circle. White roses, lilies and chrysanthemums with a satin ribbon.',
+    'Corona de Cremación': 'An intimate size, ideal beside the urn or for a private ceremony.',
+    'Corazón Blanco Sólido': 'A solid heart of white roses. The purest expression of family love.',
+    'Corazón Abierto Pastel': 'An open heart in pink, peach and cream. Love that remains.',
+    'Cesta de Pie de Condolencias': 'A tall basket on a pedestal, overflowing with mixed flowers in soft tones.',
+    'Cesta de Piso Blanca': 'White flowers with cascading greenery. Elegant beside the casket or at the entrance.',
+    'Arreglo Blanco Sincero': 'White roses, lilies and daisies in a glass vase. Simple and luminous.',
+    'Rosas Blancas de Tallo Largo': 'Premium roses with eucalyptus and wax flower. A gesture of deep respect.',
+    'Recuerdos Preciados': 'White roses, blue delphinium and carnations in a cylinder vase. Calm and hope.',
+    'Lágrimas Curativas': 'White flowers in a leaf-lined glass cube. Intimate, for the home.',
+    'Planta Lirio de la Paz': 'A peace lily in a white ceramic pot. It stays with the family for years.'
+  };
+  // helpers that pick the visitor's language
+  const L = {
+    cat: c => lang === 'en' ? (CAT_EN[c] || c) : c,
+    desc: (name, es) => lang === 'en' ? (DESC_EN[name] || es) : es,
+    badge: b => b && lang === 'en' ? (BADGE_EN[b] || b) : b,
+    size: s => lang === 'en' ? (SIZE_EN[s] || s) : s
+  };
+
   // Colección funeraria (fotos en images/funeral/, miniaturas en images/t/funeral/)
   const PACKAGES = [
     { name: 'Paquete Serenidad', short: 'Serenidad', price: 405, was: 450, v: '48513147764930',
@@ -1045,7 +1127,7 @@
   PACKAGES.forEach(p => CAT[p.v] = { name: p.name, price: p.price, thumb: 't/funeral/' + p.inc[0][0] + '.jpg', full: 'funeral/' + p.inc[0][0] + '.jpg', fun: true });
   FUN_GROUPS.forEach(g => g.items.forEach(it => {
     const thumb = 't/funeral/' + it.img + '.jpg', full = 'funeral/' + it.img + '.jpg';
-    if (it.sizes) it.sizes.forEach(([lbl, price, v]) => CAT[v] = { name: it.name + ' · ' + lbl, price, thumb, full, fun: true });
+    if (it.sizes) it.sizes.forEach(([lbl, price, v]) => CAT[v] = { name: it.name + ' · ' + lbl, base: it.name, size: lbl, price, thumb, full, fun: true });
     else CAT[it.v] = { name: it.name, price: it.price, thumb, full, fun: true };
   }));
 
@@ -1074,10 +1156,15 @@
   const t = k => T[lang][k];
   document.querySelectorAll('[data-en]').forEach(el => el.dataset.es = el.textContent);
   document.querySelectorAll('[data-en-html]').forEach(el => el.dataset.esHtml = el.innerHTML);
+  document.querySelectorAll('[data-en-ph]').forEach(el => el.dataset.esPh = el.placeholder);
+  let langReady = false;
   function applyLang() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-en]').forEach(el => el.textContent = lang === 'en' ? el.dataset.en : el.dataset.es);
     document.querySelectorAll('[data-en-html]').forEach(el => el.innerHTML = lang === 'en' ? el.dataset.enHtml : el.dataset.esHtml);
+    document.querySelectorAll('[data-en-ph]').forEach(el => el.placeholder = lang === 'en' ? el.dataset.enPh : el.dataset.esPh);
+    if (langReady) show(idxFrom(target)); // refresh the arrangement card in front of the carousel
+    langReady = true;
     $('langEs').setAttribute('aria-pressed', lang === 'es'); $('langEn').setAttribute('aria-pressed', lang === 'en');
     const ann = lang === 'en' ? ANN_EN : ANN_ES;
     $('ann').innerHTML = [...ann, ...ann].map(s => `<span>${esc(s)}</span>`).join('');
@@ -1252,12 +1339,12 @@
       return `<article class="piece">
         <button class="piece-img" type="button" data-zoom="${i}" aria-label="Ver ${esc(it.name)}">
           <img src="images/t/funeral/${it.img}.jpg" srcset="images/t/funeral/${it.img}.jpg 360w, images/funeral/${it.img}.jpg 700w" sizes="270px" alt="${esc(it.name)}" loading="lazy" width="360" height="450">
-          ${it.badge ? `<span class="piece-badge">${esc(it.badge)}</span>` : ''}
+          ${it.badge ? `<span class="piece-badge">${esc(L.badge(it.badge))}</span>` : ''}
         </button>
         <div class="piece-body">
           <h4>${esc(it.name)}</h4>
-          <p>${esc(it.desc)}</p>
-          ${it.sizes ? `<div class="sizes">${it.sizes.map(([lbl], k) => `<button class="size" type="button" data-size="${key}:${k}" aria-pressed="${k === si}">${esc(lbl)}</button>`).join('')}</div>` : ''}
+          <p>${esc(L.desc(it.name, it.desc))}</p>
+          ${it.sizes ? `<div class="sizes">${it.sizes.map(([lbl], k) => `<button class="size" type="button" data-size="${key}:${k}" aria-pressed="${k === si}">${esc(L.size(lbl))}</button>`).join('')}</div>` : ''}
           <div class="piece-foot"><b>${money(price)}</b><button class="btn btn-gold btn-sm" type="button" data-add="${v}">${t('add')}</button></div>
         </div>
       </article>`;
@@ -1303,14 +1390,14 @@
     const l = cart.find(x => x.v === v); if (l) l.q++; else cart.push({ v, q: 1 });
     saveCart(); renderCart();
     $('fabCart').classList.remove('bump'); void $('fabCart').offsetWidth; $('fabCart').classList.add('bump');
-    toast(CAT[v].name + ' ' + t('added'));
+    const c = CAT[v]; toast((c.size ? c.base + ' · ' + L.size(c.size) : c.name) + ' ' + t('added'));
   }
   function renderCart() {
     const n = cartCount();
     $('navCount').textContent = n; $('fabCount').textContent = n; $('fabCount').dataset.zero = n === 0;
     $('lines').innerHTML = cart.length ? cart.map(l => { const it = CAT[l.v]; return `<div class="line">
         <img src="images/${it.thumb}" alt="" width="64" height="80">
-        <div><div class="line-name">${esc(it.name)}</div><div class="line-price">${money(it.price)}</div>
+        <div><div class="line-name">${esc(it.size ? it.base + ' · ' + L.size(it.size) : it.name)}</div><div class="line-price">${money(it.price)}</div>
           <div class="qty"><button type="button" data-dec="${l.v}" aria-label="Menos">−</button><span>${l.q}</span><button type="button" data-inc="${l.v}" aria-label="Más">+</button></div></div>
         <button class="rm" type="button" data-rm="${l.v}">${t('remove')}</button></div>`; }).join('')
       : (() => {
@@ -1418,8 +1505,8 @@
   const lb = $('sheet');
   const sh = { list: [], i: 0, sel: null, fromCarousel: false, back: null };
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg>';
-  const specItem = it => ({ cat: it.cat, name: it.name, desc: it.desc, badge: it.badge, img: it.img, price: it.price, v: it.v });
-  const specPiece = (g, it) => ({ cat: lang === 'en' ? g.en : g.es, name: it.name, desc: it.desc, badge: it.badge || '', img: 'funeral/' + it.img + '.jpg', price: it.price, v: it.v, sizes: it.sizes, fun: true });
+  const specItem = it => ({ cat: L.cat(it.cat), name: it.name, desc: L.desc(it.name, it.desc), badge: L.badge(it.badge), img: it.img, price: it.price, v: it.v });
+  const specPiece = (g, it) => ({ cat: lang === 'en' ? g.en : g.es, name: it.name, desc: L.desc(it.name, it.desc), badge: L.badge(it.badge || ''), img: 'funeral/' + it.img + '.jpg', price: it.price, v: it.v, sizes: it.sizes, fun: true });
   function openSheet(specs, i, sel, fromCarousel) {
     sh.back = document.activeElement; sh.list = specs; sh.i = i; sh.sel = sel ?? null; sh.fromCarousel = !!fromCarousel;
     renderSheet(); lb.hidden = false; document.documentElement.style.overflow = 'hidden'; $('shClose').focus();
@@ -1433,7 +1520,7 @@
     $('shCat').textContent = s.cat; $('shName').textContent = s.name; $('shDesc').textContent = s.desc;
     $('shBadge').textContent = s.badge; $('shBadge').hidden = !s.badge;
     $('shSizes').hidden = !s.sizes;
-    $('shSizes').innerHTML = s.sizes ? s.sizes.map(([lbl, p], k) => `<button class="size" type="button" data-k="${k}" aria-pressed="${k === si}">${esc(lbl)} · ${money(p)}</button>`).join('') : '';
+    $('shSizes').innerHTML = s.sizes ? s.sizes.map(([lbl, p], k) => `<button class="size" type="button" data-k="${k}" aria-pressed="${k === si}">${esc(L.size(lbl))} · ${money(p)}</button>`).join('') : '';
     $('shPrice').textContent = money(price);
     $('shAdd').textContent = t('addHero'); $('shAdd').dataset.v = v;
     const perks = s.fun
@@ -1485,10 +1572,10 @@
     const it = list[i]; if (!it) return;
     card.classList.add('changing'); clearTimeout(swapTimer);
     swapTimer = setTimeout(() => {
-      $('cat').textContent = it.cat;
+      $('cat').textContent = L.cat(it.cat);
       $('count').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
-      $('name').textContent = it.name; $('desc').textContent = it.desc;
-      $('badge').textContent = it.badge; $('badge').hidden = !it.badge;
+      $('name').textContent = it.name; $('desc').textContent = L.desc(it.name, it.desc);
+      $('badge').textContent = L.badge(it.badge); $('badge').hidden = !it.badge;
       $('price').textContent = money(it.price);
       card.classList.remove('changing');
     }, reduceMotion ? 0 : 180);
@@ -1503,7 +1590,7 @@
   $('zoom').onclick = () => { if (list.length) openSheet(list.map(specItem), idxFrom(target), null, true); };
 
   function renderChips() {
-    $('chips').innerHTML = [...cats, 'Todos'].map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c === currentCat}">${esc(c === 'Todos' ? t('all') : c)}<span>${c === 'Todos' ? items.length : items.filter(i => i.cat === c).length}</span></button>`).join('');
+    $('chips').innerHTML = [...cats, 'Todos'].map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c === currentCat}">${esc(c === 'Todos' ? t('all') : L.cat(c))}<span>${c === 'Todos' ? items.length : items.filter(i => i.cat === c).length}</span></button>`).join('');
   }
   $('chips').onclick = e => {
     const b = e.target.closest('.chip'); if (!b) return;
