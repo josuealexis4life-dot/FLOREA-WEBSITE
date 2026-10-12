@@ -1550,7 +1550,8 @@
         const p = f.properties || {};
         const line1 = [p.housenumber, p.street || p.name].filter(Boolean).join(' ');
         const line2 = [p.city || p.district || p.county, p.state, p.postcode].filter(Boolean).join(', ');
-        return { line1, line2, full: line1 + (line2 ? ', ' + line2 : ''), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
+        return { line1, line2, full: line1 + (line2 ? ', ' + line2 : ''), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0],
+          city: p.city || p.district || p.county || '', state: p.state || '', zip: p.postcode || '' };
       }).filter(a => a.line1 && !seen.has(a.full) && seen.add(a.full)).slice(0, 6);
       acIdx = -1; renderAc();
     } catch (e) { if (e.name !== 'AbortError') hideAc(); }
@@ -1607,6 +1608,13 @@
       const q = new URLSearchParams(); q.set('note', info.map(x => x.join(': ')).join(' | '));
       all.forEach(([k, v]) => q.set(`attributes[${k}]`, v));
       q.set('locale', lang); // checkout opens in the visitor's language (Spanish is published in Shopify)
+      // Prefill the delivery address (and recipient name) when it was picked from the suggestions
+      if (d === 'local' && addrPick && addrPick.full === addr) {
+        const sa = 'checkout[shipping_address]';
+        q.set(`${sa}[address1]`, addrPick.line1); q.set(`${sa}[city]`, addrPick.city); q.set(`${sa}[zip]`, addrPick.zip);
+        q.set(`${sa}[province]`, ({ Arizona: 'AZ' })[addrPick.state] || addrPick.state); q.set(`${sa}[country]`, 'US');
+        if (to) { const parts = to.split(/\s+/); q.set(`${sa}[first_name]`, parts.shift()); if (parts.length) q.set(`${sa}[last_name]`, parts.join(' ')); }
+      }
       // The order is finished on Shopify, so empty this cart; keep a copy for 2 days in case the payment wasn't completed.
       const handOff = () => { store.set('florea-pending', { at: Date.now(), cart }); cart = []; saveCart(); renderCart(); };
       if (go(`${SHOP}/cart/${linesQ}?${q}`, t('checkoutLive'))) handOff();
