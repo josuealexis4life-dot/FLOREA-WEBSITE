@@ -1583,7 +1583,7 @@
         logo.rotation.y = Math.PI; logo.position.set(0, CY, -.01); g.add(logo);
         [[0, CY + PH / 2 + FR / 2, 0], [0, CY - PH / 2 - FR / 2, 0]].forEach(p => { const m = new THREE.Mesh(frameGeos[0], goldMat); m.position.set(...p); g.add(m); });
         [[-PW / 2 - FR / 2, CY, 0], [PW / 2 + FR / 2, CY, 0]].forEach(p => { const m = new THREE.Mesh(frameGeos[1], goldMat); m.position.set(...p); g.add(m); });
-        const rmat = new THREE.MeshBasicMaterial({ map, alphaMap: fadeTex, transparent: true, opacity: .22, depthWrite: false, side: THREE.DoubleSide }); rmat.userData.own = true;
+        const rmat = new THREE.MeshBasicMaterial({ map, alphaMap: fadeTex, transparent: true, opacity: .35, depthWrite: false, side: THREE.DoubleSide }); rmat.userData.own = true;
         const refl = new THREE.Mesh(photoGeo, rmat); refl.position.y = -CY; refl.scale.y = -1; refl.renderOrder = 1; g.add(refl);
         return { g, photo, mat, rmat };
       });
@@ -1607,19 +1607,32 @@
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * camera.aspect;
-      let dist;
+      let dist, offX, offY, top, bottom;
       if (innerWidth <= 760) {
         const topH = 60, avail = Math.max(.4, (h - topH) / h);
-        camera.setViewOffset(w, h, 0, -topH / 2, w, h);
+        offX = 0; offY = -topH / 2; top = 1 - 2 * topH / h + .04; bottom = -.94;
         dist = Math.max((PH * 1.15 / 2) / (tanV * avail), (PW * 1.55 / 2) / tanH);
       } else {
         const cardW = Math.max(0, card.getBoundingClientRect().right - stage.getBoundingClientRect().left) + 40;
-        camera.setViewOffset(w, h, -cardW / 2, -24, w, h);
+        offX = -cardW / 2; offY = -24; top = .86; bottom = -.93; // top leaves room for the category chips
         const availW = Math.max(.35, (w - cardW) / w);
         dist = Math.max((PH * 1.42 / 2) / tanV, (PW * 2.6 / 2) / (tanH * availW));
       }
-      camera.updateProjectionMatrix();
-      camBase.set(0, CY + .45, R + dist);
+      // Frame the whole thing: the front of the gold ring at the bottom and the top of the front panel.
+      // Center it vertically between the two limits, and only pull the camera back if it really doesn't fit.
+      const probe = new THREE.Vector3(), ringFront = R + .35, panelTop = CY + PH / 2 + FR;
+      for (let k = 0; k < 12; k++) {
+        camera.setViewOffset(w, h, offX, offY, w, h); camera.updateProjectionMatrix();
+        camBase.set(0, CY + .45, R + dist);
+        camera.position.copy(camBase); camera.lookAt(0, CY - .05, 0); camera.updateMatrixWorld();
+        const yLow = probe.set(0, 0, ringFront).project(camera).y;
+        const yHigh = probe.set(0, panelTop, R * 1.07).project(camera).y;
+        const span = yHigh - yLow, room = top - bottom;
+        if (span > room) { dist *= 1 + (span - room) / room * .9; continue; }
+        const shift = ((yHigh + yLow) - (top + bottom)) / 2; // NDC; positive = content sits too high
+        if (Math.abs(shift) < .005) break;
+        offY -= shift * h / 2;
+      }
     }
     addEventListener('resize', () => { fit(); kick(); });
 
@@ -1694,7 +1707,7 @@
       const fi = idxFrom(angle); if (fi !== frontIdx) { frontIdx = fi; show(fi); }
       panels.forEach((p, i) => {
         const a = mod(i * step + angle + Math.PI, Math.PI * 2) - Math.PI, f = Math.cos(a), k = THREE.MathUtils.smoothstep(f, .3, 1);
-        p.mat.color.setScalar(.28 + .72 * k); p.rmat.opacity = .05 + .17 * k; p.g.scale.setScalar(1 + .07 * Math.pow(Math.max(f, 0), 14));
+        p.mat.color.setScalar(.28 + .72 * k); p.rmat.opacity = .08 + .27 * k; p.g.scale.setScalar(1 + .07 * Math.pow(Math.max(f, 0), 14));
       });
       const r = canvas.getBoundingClientRect();
       const tx = pointer.on ? ((pointer.x - r.left) / r.width - .5) : Math.sin(tm * .25) * .15;
