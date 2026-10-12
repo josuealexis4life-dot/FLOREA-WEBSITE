@@ -924,8 +924,13 @@
         <span class="small" id="dateHint"></span>
       </div>
       <div class="field">
-        <label class="lbl" for="fTo" data-en="For (recipient)">Para (quién lo recibe)</label>
-        <input id="fTo" autocomplete="off" placeholder="Nombre" data-en-ph="Name">
+        <label class="lbl" for="fTo" data-en="For (recipient's full name)">Para (nombre y apellido de quien recibe)</label>
+        <input id="fTo" autocomplete="off" placeholder="Nombre y apellido" data-en-ph="First and last name">
+      </div>
+      <div class="field" id="phoneField" hidden>
+        <label class="lbl" for="fPhone" data-en="Recipient's phone">Teléfono de quien recibe</label>
+        <input id="fPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="(602) 555-1234" maxlength="18">
+        <span class="small" data-en="So our driver can call if they can't find the address.">Para que nuestro repartidor pueda llamar si no encuentra la dirección.</span>
       </div>
       <div class="field">
         <label class="lbl" for="fMsg" id="msgLabel">Mensaje para la tarjeta (opcional)</label>
@@ -1210,7 +1215,7 @@
           sentTitle: 'Tu pedido se abrió en el pago', sentSub: 'Si ya pagaste, ¡gracias! Te llega la confirmación por correo. Si no terminaste, recupéralo aquí.', restore: 'Recuperar mi pedido', seeColl: 'Ver colección', remove: 'Quitar', all: 'Todos',
           addHero: 'Agregar al pedido', add: 'Agregar', seeAll: 'Ver colección', noteLive: 'El envío y los impuestos se calculan en el pago.', noteWa: 'Te confirmamos el total con envío por WhatsApp.', noteUber: 'En el pago elige “Recoger en tienda”: el Uber pasa por tu arreglo y el viaje se cobra aparte.', freeYes: '¡Tu pedido tiene entrega gratis!', freeMissing: 'Te faltan {n} para entrega gratis.',
           noteFun: 'Los paquetes funerarios incluyen entrega sin costo en el área de Phoenix.',
-          errAddr: 'Escribe la dirección de entrega.', errDate: 'Elige una fecha disponible.', sample: 'Reseña de ejemplo', mi: 'mi', more: 'Más de 20 mi', quote: 'cotizar',
+          errAddr: 'Escribe la dirección de entrega.', errName: 'Escribe nombre y apellido de quien recibe.', errPhone: 'Escribe el teléfono de quien recibe (10 dígitos).', errDate: 'Elige una fecha disponible.', sample: 'Reseña de ejemplo', mi: 'mi', more: 'Más de 20 mi', quote: 'cotizar',
           hello: 'Hola FLORÉA', waAsk: 'Hola FLORÉA, quiero cotizar: ', msgCard: 'Mensaje para la tarjeta (opcional)', msgRibbon: 'Texto del listón / tarjeta',
           hintToday: 'Disponible hoy.', hintTomorrow: { pickup: 'Ya cerramos por hoy; la fecha más próxima es mañana.', local: 'Después de las 2 PM la entrega FLORÉA es al día siguiente.', uber: 'Uber Direct es hasta las 7 PM; la fecha más próxima es mañana.' },
           save: 'Ahorra', includes: 'Incluye', mostChosen: 'El más elegido', pkgAdd: 'Agregar paquete' },
@@ -1219,7 +1224,7 @@
           sentTitle: 'Your order opened at checkout', sentSub: 'If you already paid, thank you! The confirmation arrives by email. If you didn’t finish, get it back here.', restore: 'Restore my order', seeColl: 'View collection', remove: 'Remove', all: 'All',
           addHero: 'Add to order', add: 'Add', seeAll: 'View collection', noteLive: 'Delivery and taxes are calculated at checkout.', noteWa: 'We confirm the total with delivery on WhatsApp.', noteUber: 'At checkout choose “Pick up”: the Uber collects your arrangement and the trip is charged separately.', freeYes: 'Your order gets free delivery!', freeMissing: 'Add {n} more for free delivery.',
           noteFun: 'Funeral packages include free delivery in the Phoenix area.',
-          errAddr: 'Enter the delivery address.', errDate: 'Choose an available date.', sample: 'Sample review', mi: 'mi', more: 'Over 20 mi', quote: 'quote',
+          errAddr: 'Enter the delivery address.', errName: 'Enter the recipient’s first and last name.', errPhone: 'Enter the recipient’s phone (10 digits).', errDate: 'Choose an available date.', sample: 'Sample review', mi: 'mi', more: 'Over 20 mi', quote: 'quote',
           hello: 'Hi FLORÉA', waAsk: 'Hi FLORÉA, I would like a quote for: ', msgCard: 'Card message (optional)', msgRibbon: 'Ribbon / card text',
           hintToday: 'Available today.', hintTomorrow: { pickup: 'We are closed for today; the earliest date is tomorrow.', local: 'After 2 PM, FLORÉA delivery is the next day.', uber: 'Uber Direct runs until 7 PM; the earliest date is tomorrow.' },
           save: 'Save', includes: 'Includes', mostChosen: 'Most chosen', pkgAdd: 'Add package' }
@@ -1513,7 +1518,7 @@
   const delVal = () => document.querySelector('input[name="del"]:checked').value;
   function syncDel() {
     const d = delVal();
-    $('addrField').hidden = d === 'pickup'; $('ratesCart').hidden = d !== 'local';
+    $('addrField').hidden = d === 'pickup'; $('ratesCart').hidden = d !== 'local'; $('phoneField').hidden = d === 'pickup';
     const now = phx(0), late = now.hour >= CUTOFF[d], min = late ? phx(1).date : now.date;
     $('fDate').min = min;
     if (!$('fDate').value || $('fDate').value < min) $('fDate').value = min;
@@ -1595,13 +1600,19 @@
     e.preventDefault();
     syncDel();
     const d = delVal(), addr = $('fAddr').value.trim(), date = $('fDate').value, to = $('fTo').value.trim(), msg = $('fMsg').value.trim(), from = $('fFrom').value.trim();
-    const err = d !== 'pickup' && !addr ? t('errAddr') : (!date || date < $('fDate').min) ? t('errDate') : '';
+    const phoneDigits = $('fPhone').value.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
+    // Shopify's local delivery needs a last name and a phone number, so ask for them here
+    const err = d !== 'pickup' && !addr ? t('errAddr')
+      : d === 'local' && to.split(/\s+/).filter(Boolean).length < 2 ? t('errName')
+      : d === 'local' && phoneDigits.length !== 10 ? t('errPhone')
+      : (!date || date < $('fDate').min) ? t('errDate') : '';
+    const phone = phoneDigits.length === 10 ? `(${phoneDigits.slice(0, 3)}) ${phoneDigits.slice(3, 6)}-${phoneDigits.slice(6)}` : '';
     $('err').textContent = err; $('err').hidden = !err; if (err) return;
     const fun = hasFun();
     // every key is always sent (empty when unused) so Shopify overwrites anything left from an earlier attempt
     const all = [['Entrega', DEL_LABEL[d]], ['Fecha', date], ['Dirección', d === 'pickup' ? '' : addr],
       ['Funeraria', fun ? $('fHome').value.trim() : ''], ['Hora del servicio', fun ? $('fTime').value : ''], ['En memoria de', fun ? $('fMemory').value.trim() : ''],
-      ['Para', to], ['Mensaje tarjeta', fun ? '' : msg], ['Listón / tarjeta', fun ? msg : ''], ['De parte de', from]];
+      ['Para', to], ['Teléfono de quien recibe', d === 'pickup' ? '' : phone], ['Mensaje tarjeta', fun ? '' : msg], ['Listón / tarjeta', fun ? msg : ''], ['De parte de', from]];
     const info = all.filter(x => x[1]);
     if (CHECKOUT_LIVE) {
       const linesQ = cart.map(l => l.v + ':' + l.q).join(',');
@@ -1614,6 +1625,7 @@
         q.set(`${sa}[address1]`, addrPick.line1); q.set(`${sa}[city]`, addrPick.city); q.set(`${sa}[zip]`, addrPick.zip);
         q.set(`${sa}[province]`, ({ Arizona: 'AZ' })[addrPick.state] || addrPick.state); q.set(`${sa}[country]`, 'US');
         if (to) { const parts = to.split(/\s+/); q.set(`${sa}[first_name]`, parts.shift()); if (parts.length) q.set(`${sa}[last_name]`, parts.join(' ')); }
+        if (phoneDigits.length === 10) q.set(`${sa}[phone]`, '+1' + phoneDigits);
       }
       // The order is finished on Shopify, so empty this cart; keep a copy for 2 days in case the payment wasn't completed.
       const handOff = () => { store.set('florea-pending', { at: Date.now(), cart }); cart = []; saveCart(); renderCart(); };
