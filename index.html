@@ -118,15 +118,21 @@
   }
 
   /* Promo countdown */
-  .promo { background: linear-gradient(135deg, rgba(60,14,10,.92), rgba(78,22,8,.92)); border-bottom: 1px solid rgba(240,120,80,.28); }
-  .promo-in { display: flex; align-items: center; justify-content: center; gap: 10px 22px; flex-wrap: wrap; padding-block: 10px; text-align: center; }
-  .ptag { border: 1px solid rgba(255,154,138,.5); background: rgba(255,154,138,.12); color: var(--promo); padding: 3px 12px; border-radius: 999px;
-    font: 500 .66rem var(--sans); letter-spacing: .2em; text-transform: uppercase; }
-  .ptext { font-size: .85rem; color: rgba(255,220,205,.85); }
+  /* Glass navy bar with hairline gold edges; the gold tag, live dot and glass number tiles carry the emphasis */
+  .promo { position: relative; background: linear-gradient(180deg, rgba(27,44,79,.55), rgba(10,18,40,.6)); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .promo::before, .promo::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(228,199,122,.55) 20%, rgba(228,199,122,.55) 80%, transparent); }
+  .promo::before { top: 0; } .promo::after { bottom: 0; }
+  .promo-in { display: flex; align-items: center; justify-content: center; gap: 10px 24px; flex-wrap: wrap; padding-block: 11px; text-align: center; }
+  .ptag { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(228,199,122,.55); background: rgba(201,162,75,.12); color: var(--gold-light); padding: 4px 13px; border-radius: 999px;
+    font: 600 .66rem var(--sans); letter-spacing: .2em; text-transform: uppercase; }
+  .ptag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold-light); box-shadow: 0 0 0 0 rgba(228,199,122,.6); animation: live 2s ease-out infinite; }
+  @keyframes live { 70%, 100% { box-shadow: 0 0 0 7px rgba(228,199,122,0); } }
+  .ptext { font: italic 400 1.05rem var(--display); color: var(--cream); }
   .cd { display: flex; align-items: center; gap: 6px; }
-  .cdu { min-width: 46px; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,154,138,.28); background: rgba(255,154,138,.08); text-align: center; line-height: 1.05; }
-  .cdn { display: block; font: 400 1.35rem var(--display); color: var(--promo); font-variant-numeric: tabular-nums; }
-  .cdl { display: block; font-size: .55rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,154,138,.6); }
+  .cdu { min-width: 48px; padding: 4px 8px 3px; border-radius: 8px; border: 1px solid rgba(228,199,122,.3); background: rgba(250,246,239,.04); box-shadow: inset 0 1px 0 rgba(255,255,255,.06); text-align: center; line-height: 1.05; }
+  .cdn { display: block; font: 600 1.15rem var(--serif); color: var(--gold-light); font-variant-numeric: tabular-nums; }
+  .cdl { display: block; margin-top: 2px; font: 500 .52rem var(--sans); letter-spacing: .16em; text-transform: uppercase; color: rgba(232,223,200,.55); }
+  @media (prefers-reduced-motion: reduce) { .ptag::before { animation: none; } }
 
   /* Gold marquee */
   .ann { background: linear-gradient(90deg, #b8933d, var(--gold), #d9bb6a, var(--gold), #b8933d); overflow: hidden; white-space: nowrap; padding-block: 9px; }
@@ -1464,9 +1470,9 @@
   /* ================= 3D carousel (Three.js loads only when the section gets near) ================= */
   const stage = $('stage'), canvas = $('scene'), card = $('card');
   const cats = [...new Set(items.map(i => i.cat))];
-  let currentCat = 'Todos', playing = !reduceMotion;
+  let currentCat = cats[0], playing = !reduceMotion; // arranca en la primera categoría (Románticos); "Todos" va al final
   function setPlay(p) { playing = p; $('play').textContent = p ? t('pause') : t('play'); }
-  let list = items, N = items.length, step = Math.PI * 2 / N, target = 0;
+  let list = items.filter(i => i.cat === currentCat), N = list.length, step = Math.PI * 2 / N, target = 0;
   const mod = (a, n) => ((a % n) + n) % n;
   const idxFrom = a => mod(Math.round(-a / step), N);
   function goTo(i) { const f = Math.round(-target / step); let d = mod(i - f, N); if (d > N / 2) d -= N; target = -(f + d) * step; }
@@ -1497,7 +1503,7 @@
   $('zoom').onclick = () => { if (list.length) openSheet(list.map(specItem), idxFrom(target), null, true); };
 
   function renderChips() {
-    $('chips').innerHTML = ['Todos', ...cats].map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c === currentCat}">${esc(c === 'Todos' ? t('all') : c)}<span>${c === 'Todos' ? items.length : items.filter(i => i.cat === c).length}</span></button>`).join('');
+    $('chips').innerHTML = [...cats, 'Todos'].map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c === currentCat}">${esc(c === 'Todos' ? t('all') : c)}<span>${c === 'Todos' ? items.length : items.filter(i => i.cat === c).length}</span></button>`).join('');
   }
   $('chips').onclick = e => {
     const b = e.target.closest('.chip'); if (!b) return;
