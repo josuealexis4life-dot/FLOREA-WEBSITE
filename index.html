@@ -1595,6 +1595,31 @@
   fAddr.addEventListener('blur', () => setTimeout(hideAc, 120));
   document.querySelectorAll('input[name="del"]').forEach(r => r.addEventListener('change', addrInfo));
 
+  /* ===== Shopify Storefront API cart: lets us tell checkout "Envío" or "Retiro" (cart permalinks can't).
+     The token is the PUBLIC Buy Button storefront token: it can only read products and build carts. ===== */
+  const SF_TOKEN = '3300e6227c79d4f9fea16b9795964264';
+  const SF_URL = SHOP + '/api/2025-07/graphql.json';
+  const SHOP_LOCATION = 'gid://shopify/Location/84312522946'; // FLORÉA Phoenix, for in-store pickup
+  async function sfCheckout({ lines, note, attributes, method, address, phone }) {
+    const input = {
+      lines: lines.map(l => ({ merchandiseId: 'gid://shopify/ProductVariant/' + l.v, quantity: l.q })),
+      note, attributes: attributes.map(([key, value]) => ({ key, value: String(value) })),
+      buyerIdentity: { countryCode: 'US', preferences: { delivery: method === 'PICK_UP' ? { deliveryMethod: ['PICK_UP'], pickupHandle: [SHOP_LOCATION] } : { deliveryMethod: ['SHIPPING'] } } }
+    };
+    if (phone) input.buyerIdentity.phone = phone;
+    if (address) input.delivery = { addresses: [{ selected: true, address: { deliveryAddress: address } }] };
+    const query = 'mutation C($input: CartInput!) { cartCreate(input: $input) { cart { checkoutUrl } userErrors { field message } } }';
+    const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const res = await fetch(SF_URL, { method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': SF_TOKEN },
+        body: JSON.stringify({ query, variables: { input } }) });
+      const j = await res.json(), url = j && j.data && j.data.cartCreate && j.data.cartCreate.cart && j.data.cartCreate.cart.checkoutUrl;
+      if (!url) throw new Error('no checkoutUrl');
+      return url + (url.includes('?') ? '&' : '?') + 'locale=' + lang;
+    } finally { clearTimeout(timer); }
+  }
+
   const DEL_LABEL = { pickup: 'Recoger en tienda', local: 'Entrega FLORÉA a domicilio', uber: 'Uber Direct' };
   $('orderForm').addEventListener('submit', e => {
     e.preventDefault();
@@ -1627,10 +1652,28 @@
         if (to) { const parts = to.split(/\s+/); q.set(`${sa}[first_name]`, parts.shift()); if (parts.length) q.set(`${sa}[last_name]`, parts.join(' ')); }
         if (phoneDigits.length === 10) q.set(`${sa}[phone]`, '+1' + phoneDigits);
       }
+      const fallbackUrl = `${SHOP}/cart/${linesQ}?${q}`; // used only if the Storefront API doesn't answer
       // The order is finished on Shopify, so empty this cart; keep a copy for 2 days in case the payment wasn't completed.
       const handOff = () => { store.set('florea-pending', { at: Date.now(), cart }); cart = []; saveCart(); renderCart(); };
-      if (go(`${SHOP}/cart/${linesQ}?${q}`, t('checkoutLive'))) handOff();
-      else $('goLink').onclick = () => setTimeout(handOff, 300);
+      // Open the tab now, inside the click, so the browser doesn't block it; send it to Shopify once the cart is ready.
+      let w = null; try { w = window.open('', '_blank'); } catch (e) {}
+      if (w) { try { w.document.title = 'FLORÉA'; w.document.body.style.cssText = 'margin:0;height:100vh;display:grid;place-items:center;background:#0a1228;color:#e4c77a;font:17px Georgia,serif;letter-spacing:.04em';
+        w.document.body.textContent = lang === 'en' ? 'Preparing your checkout…' : 'Preparando tu pago…'; } catch (e) {} }
+      const btn = $('checkout'); btn.disabled = true; btn.textContent = lang === 'en' ? 'Preparing…' : 'Preparando…';
+      const parts = to.split(/\s+/).filter(Boolean);
+      const address = d === 'local' && addrPick && addrPick.full === addr ? {
+        address1: addrPick.line1, city: addrPick.city, zip: addrPick.zip, countryCode: 'US',
+        provinceCode: ({ Arizona: 'AZ' })[addrPick.state] || addrPick.state,
+        firstName: parts[0] || '', lastName: parts.slice(1).join(' '), phone: phoneDigits.length === 10 ? '+1' + phoneDigits : undefined } : null;
+      sfCheckout({ lines: cart, note: info.map(x => x.join(': ')).join(' | '), attributes: info, method: d === 'local' ? 'SHIPPING' : 'PICK_UP',
+                   address, phone: phoneDigits.length === 10 && d !== 'pickup' ? '+1' + phoneDigits : '' })
+        .catch(() => fallbackUrl)
+        .then(url => {
+          btn.disabled = false; btn.textContent = t('checkoutLive');
+          if (w && !w.closed) { try { w.opener = null; } catch (e) {} w.location.href = url; handOff(); }
+          else if (go(url, t('checkoutLive'))) handOff();
+          else $('goLink').onclick = () => setTimeout(handOff, 300);
+        });
     } else {
       const txt = [t('hello') + ', quiero hacer este pedido:', '',
         ...cart.map(l => `• ${l.q} × ${CAT[l.v].name} (${money(CAT[l.v].price)})`),
