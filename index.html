@@ -497,6 +497,17 @@
   .field { display: grid; gap: 4px; }
   .field input, .field textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--line); background: rgba(4,8,18,.45); color: var(--ivory); font-size: .92rem; }
   .field textarea { resize: vertical; min-height: 84px; }
+  /* address suggestions */
+  .ac-wrap { position: relative; }
+  .ac { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; max-height: 260px; overflow-y: auto;
+    background: var(--navy-soft); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+  .ac button { display: grid; gap: 1px; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--ivory); cursor: pointer; }
+  .ac button b { font-weight: 500; font-size: .88rem; }
+  .ac button span { font-size: .74rem; color: var(--muted); }
+  .ac button:hover, .ac button[aria-selected="true"] { background: rgba(201,162,75,.14); }
+  .ac .ac-note { padding: 6px 10px 2px; font-size: .64rem; color: rgba(232,223,200,.4); }
+  #addrInfo.out { color: var(--promo); }
+  #addrInfo.ok { color: var(--gold-light); }
   .field .small { font-variant-numeric: tabular-nums; }
   .field .count-r { text-align: right; }
   .svc-box { display: grid; gap: 14px; padding: 16px; border-radius: 8px; border: 1px solid rgba(217,210,234,.25); background: rgba(217,210,234,.04); }
@@ -901,7 +912,11 @@
       </fieldset>
       <div class="field" id="addrField" hidden>
         <label class="lbl" for="fAddr" data-en="Delivery address">Dirección de entrega</label>
-        <input id="fAddr" autocomplete="street-address" placeholder="Calle, número, ciudad, ZIP" data-en-ph="Street, number, city, ZIP">
+        <div class="ac-wrap">
+          <input id="fAddr" autocomplete="off" placeholder="Empieza a escribir tu dirección" data-en-ph="Start typing your address" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="addrList">
+          <ul class="ac" id="addrList" role="listbox" hidden></ul>
+        </div>
+        <span class="small" id="addrInfo" aria-live="polite"></span>
       </div>
       <div class="field">
         <label class="lbl" for="fDate" data-en="Date">Fecha</label>
@@ -1507,6 +1522,72 @@
   }
   document.querySelectorAll('input[name="del"]').forEach(r => r.addEventListener('change', syncDel));
   $('fMsg').addEventListener('input', () => $('msgCount').textContent = $('fMsg').value.length + ' / 250');
+
+  /* ===== Address suggestions (OpenStreetMap / Photon, free, no key) + approximate distance from the shop ===== */
+  const SHOP_LL = [33.49303, -112.22012]; // 4013 N 75th Ave, Phoenix (OpenStreetMap)
+  const MAX_MI = RATES[RATES.length - 1][0];
+  let acTimer = null, acCtrl = null, acItems = [], acIdx = -1, addrPick = null;
+  const fAddr = $('fAddr'), acList = $('addrList');
+  const milesTo = (lat, lon) => {
+    const R = 3958.8, r = x => x * Math.PI / 180, dLat = r(lat - SHOP_LL[0]), dLon = r(lon - SHOP_LL[1]);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(r(SHOP_LL[0])) * Math.cos(r(lat)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  };
+  function hideAc() { acList.hidden = true; acList.innerHTML = ''; acIdx = -1; fAddr.setAttribute('aria-expanded', 'false'); }
+  function renderAc() {
+    if (!acItems.length) { hideAc(); return; }
+    acList.innerHTML = acItems.map((a, i) => `<li><button type="button" role="option" data-i="${i}" aria-selected="${i === acIdx}"><b>${esc(a.line1)}</b><span>${esc(a.line2)}</span></button></li>`).join('')
+      + `<li class="ac-note">© OpenStreetMap</li>`;
+    acList.hidden = false; fAddr.setAttribute('aria-expanded', 'true');
+  }
+  async function searchAddr(q) {
+    try {
+      if (acCtrl) acCtrl.abort(); acCtrl = new AbortController();
+      const url = 'https://photon.komoot.io/api/?limit=7&lang=en&lat=33.49&lon=-112.22&bbox=-113.6,32.6,-111.0,34.3&q=' + encodeURIComponent(q);
+      const j = await (await fetch(url, { signal: acCtrl.signal })).json();
+      const seen = new Set();
+      acItems = (j.features || []).map(f => {
+        const p = f.properties || {};
+        const line1 = [p.housenumber, p.street || p.name].filter(Boolean).join(' ');
+        const line2 = [p.city || p.district || p.county, p.state, p.postcode].filter(Boolean).join(', ');
+        return { line1, line2, full: line1 + (line2 ? ', ' + line2 : ''), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
+      }).filter(a => a.line1 && !seen.has(a.full) && seen.add(a.full)).slice(0, 6);
+      acIdx = -1; renderAc();
+    } catch (e) { if (e.name !== 'AbortError') hideAc(); }
+  }
+  function addrInfo() {
+    const el = $('addrInfo'); el.className = 'small'; el.textContent = '';
+    if (!addrPick) return;
+    const d = delVal(), mi = milesTo(addrPick.lat, addrPick.lon), miTxt = (Math.round(mi * 10) / 10).toFixed(1);
+    if (mi > MAX_MI && d === 'local') {
+      el.className = 'small out';
+      el.textContent = lang === 'en' ? `About ${miTxt} mi away: outside our ${MAX_MI}-mile delivery area. Message us on WhatsApp for a quote.` : `A unas ${miTxt} mi: fuera de nuestra zona de entrega (${MAX_MI} mi). Escríbenos por WhatsApp para cotizar.`;
+    } else if (d === 'local') {
+      const rate = RATES.find(([m]) => mi <= m), free = cartTotal() >= FREE_DELIVERY;
+      el.className = 'small ok';
+      el.textContent = lang === 'en' ? `About ${miTxt} mi from our shop · delivery approx. ${free ? 'FREE' : money(rate[1])}. Exact cost at checkout.` : `A unas ${miTxt} mi de la florería · entrega aprox. ${free ? 'GRATIS' : money(rate[1])}. El costo exacto se confirma en el pago.`;
+    } else if (d === 'uber') {
+      el.className = 'small ok';
+      el.textContent = lang === 'en' ? `About ${miTxt} mi from our shop.` : `A unas ${miTxt} mi de la florería.`;
+    }
+  }
+  function pickAddr(i) { const a = acItems[i]; if (!a) return; addrPick = a; fAddr.value = a.full; hideAc(); addrInfo(); }
+  fAddr.addEventListener('input', () => {
+    addrPick = null; addrInfo(); clearTimeout(acTimer);
+    const q = fAddr.value.trim();
+    if (q.length < 4) { hideAc(); return; }
+    acTimer = setTimeout(() => searchAddr(q), 280);
+  });
+  fAddr.addEventListener('keydown', e => {
+    if (acList.hidden) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); acIdx = (acIdx + (e.key === 'ArrowDown' ? 1 : -1) + acItems.length) % acItems.length; renderAc(); }
+    else if (e.key === 'Enter' && acIdx >= 0) { e.preventDefault(); pickAddr(acIdx); }
+    else if (e.key === 'Escape') { e.stopPropagation(); hideAc(); }
+  });
+  acList.addEventListener('mousedown', e => e.preventDefault()); // keep focus in the field while choosing
+  acList.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) pickAddr(+b.dataset.i); });
+  fAddr.addEventListener('blur', () => setTimeout(hideAc, 120));
+  document.querySelectorAll('input[name="del"]').forEach(r => r.addEventListener('change', addrInfo));
 
   const DEL_LABEL = { pickup: 'Recoger en tienda', local: 'Entrega FLORÉA a domicilio', uber: 'Uber Direct' };
   $('orderForm').addEventListener('submit', e => {
