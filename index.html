@@ -222,7 +222,7 @@
   #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
   #scene.hover { cursor: pointer; }
   #scene.drag { cursor: grabbing; }
-  .chips { position: absolute; z-index: 2; top: 10px; left: 0; right: 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 16px; justify-content: safe center; }
+  .chips { position: relative; z-index: 2; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 16px 6px; margin-top: -12px; justify-content: safe center; }
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: none; border: 1px solid var(--line); background: rgba(15,27,51,.6); backdrop-filter: blur(6px); color: var(--ivory); border-radius: 999px;
     padding: .5rem .95rem; font: 500 .8rem var(--sans); letter-spacing: .03em; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
@@ -545,10 +545,10 @@
     <h2 class="h2" data-en-html="Our <em>collection</em>">Nuestra <em>colección</em></h2>
     <hr class="rule">
   </div>
+  <nav class="chips" id="chips" aria-label="Categorías"></nav>
   <div class="stage-wrap">
     <div class="stage" id="stage">
       <canvas id="scene" aria-label="Carrusel 3D de arreglos florales FLORÉA"></canvas>
-      <nav class="chips" id="chips" aria-label="Categorías"></nav>
       <p class="hint" id="hint" data-en="Drag to spin · tap an arrangement">Arrastra para girar · toca un arreglo</p>
     </div>
     <article class="card" id="card" aria-live="polite">
@@ -1609,12 +1609,12 @@
       const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * camera.aspect;
       let dist, offX, offY, top, bottom;
       if (innerWidth <= 760) {
-        const topH = 60, avail = Math.max(.4, (h - topH) / h);
-        offX = 0; offY = -topH / 2; top = 1 - 2 * topH / h + .04; bottom = -.94;
+        const topH = 0, avail = .9;
+        offX = 0; offY = -topH / 2; top = .95; bottom = -.94; // chips now sit above the stage, so the panels can use the full height
         dist = Math.max((PH * 1.15 / 2) / (tanV * avail), (PW * 1.55 / 2) / tanH);
       } else {
         const cardW = Math.max(0, card.getBoundingClientRect().right - stage.getBoundingClientRect().left) + 40;
-        offX = -cardW / 2; offY = -24; top = .86; bottom = -.93; // top leaves room for the category chips
+        offX = -cardW / 2; offY = -24; top = .95; bottom = -.93; // chips now sit above the stage
         const availW = Math.max(.35, (w - cardW) / w);
         dist = Math.max((PH * 1.42 / 2) / tanV, (PW * 2.6 / 2) / (tanH * availW));
       }
