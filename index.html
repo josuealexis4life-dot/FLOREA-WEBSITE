@@ -793,7 +793,7 @@
         <label class="opt"><input type="radio" name="del" id="delPickup" value="pickup" checked>
           <span><b data-en="Pick up at FLORÉA">Recoger en FLORÉA</b><small>4013 N 75th Ave, Phoenix</small></span><span class="tag" data-en="Free">Gratis</span></label>
         <label class="opt"><input type="radio" name="del" id="delLocal" value="local">
-          <span><b data-en="FLORÉA delivery">Entrega FLORÉA a domicilio</b><small data-en="Order before 2 PM for same day. Cost by distance, calculated with your address.">Pide antes de 2 PM para hoy. Costo por distancia según tu dirección.</small></span><span class="tag" data-en="from $10">desde $10</span></label>
+          <span><b data-en="FLORÉA delivery">Entrega FLORÉA a domicilio</b><small data-en="Order before 2 PM for same day. Cost by distance, calculated with your address. Over 20 mi? Message us on WhatsApp for a quote.">Pide antes de 2 PM para hoy. Costo por distancia según tu dirección. ¿Más de 20 millas? Escríbenos por WhatsApp para cotizar.</small></span><span class="tag" data-en="from $10">desde $10</span></label>
         <label class="opt"><input type="radio" name="del" id="delUber" value="uber">
           <span><b>Uber Direct · express</b><small data-en="Until 7 PM. The Uber picks up your arrangement at our shop, so at checkout choose “Pick up”. You pay the Uber trip separately; we confirm the exact cost on WhatsApp before sending.">Hasta las 7 PM. El Uber pasa por tu arreglo a la florería, así que en el pago elige “Recoger en tienda”. El viaje de Uber se paga aparte; te confirmamos el costo exacto por WhatsApp antes de enviarlo.</small></span><span class="tag" data-en="Varies">Variable</span></label>
         <div class="rates" id="ratesCart" hidden></div>
@@ -1036,7 +1036,8 @@
   let lang = store.get('florea-lang', 'es');
   const T = {
     es: { pause: 'Pausar giro', play: 'Girar solo', added: 'agregado al pedido', checkoutLive: 'Ir a pagar', checkoutWa: 'Enviar pedido por WhatsApp',
-          empty: 'Tu pedido está vacío', emptySub: 'Elige un arreglo y agrégalo aquí.', seeColl: 'Ver colección', remove: 'Quitar', all: 'Todos',
+          empty: 'Tu pedido está vacío', emptySub: 'Elige un arreglo y agrégalo aquí.',
+          sentTitle: 'Tu pedido se abrió en el pago', sentSub: 'Si ya pagaste, ¡gracias! Te llega la confirmación por correo. Si no terminaste, recupéralo aquí.', restore: 'Recuperar mi pedido', seeColl: 'Ver colección', remove: 'Quitar', all: 'Todos',
           addHero: 'Agregar al pedido', add: 'Agregar', seeAll: 'Ver colección', noteLive: 'El envío y los impuestos se calculan en el pago.', noteWa: 'Te confirmamos el total con envío por WhatsApp.', noteUber: 'En el pago elige “Recoger en tienda”: el Uber pasa por tu arreglo y el viaje se cobra aparte.', freeYes: '¡Tu pedido tiene entrega gratis!', freeMissing: 'Te faltan {n} para entrega gratis.',
           noteFun: 'Los paquetes funerarios incluyen entrega sin costo en el área de Phoenix.',
           errAddr: 'Escribe la dirección de entrega.', errDate: 'Elige una fecha disponible.', sample: 'Reseña de ejemplo', mi: 'mi', more: 'Más de 20 mi', quote: 'cotizar',
@@ -1044,7 +1045,8 @@
           hintToday: 'Disponible hoy.', hintTomorrow: { pickup: 'Ya cerramos por hoy; la fecha más próxima es mañana.', local: 'Después de las 2 PM la entrega FLORÉA es al día siguiente.', uber: 'Uber Direct es hasta las 7 PM; la fecha más próxima es mañana.' },
           save: 'Ahorra', includes: 'Incluye', mostChosen: 'El más elegido', pkgAdd: 'Agregar paquete' },
     en: { pause: 'Pause spin', play: 'Auto spin', added: 'added to your order', checkoutLive: 'Checkout', checkoutWa: 'Send order on WhatsApp',
-          empty: 'Your order is empty', emptySub: 'Pick an arrangement and add it here.', seeColl: 'View collection', remove: 'Remove', all: 'All',
+          empty: 'Your order is empty', emptySub: 'Pick an arrangement and add it here.',
+          sentTitle: 'Your order opened at checkout', sentSub: 'If you already paid, thank you! The confirmation arrives by email. If you didn’t finish, get it back here.', restore: 'Restore my order', seeColl: 'View collection', remove: 'Remove', all: 'All',
           addHero: 'Add to order', add: 'Add', seeAll: 'View collection', noteLive: 'Delivery and taxes are calculated at checkout.', noteWa: 'We confirm the total with delivery on WhatsApp.', noteUber: 'At checkout choose “Pick up”: the Uber collects your arrangement and the trip is charged separately.', freeYes: 'Your order gets free delivery!', freeMissing: 'Add {n} more for free delivery.',
           noteFun: 'Funeral packages include free delivery in the Phoenix area.',
           errAddr: 'Enter the delivery address.', errDate: 'Choose an available date.', sample: 'Sample review', mi: 'mi', more: 'Over 20 mi', quote: 'quote',
@@ -1294,7 +1296,14 @@
         <div><div class="line-name">${esc(it.name)}</div><div class="line-price">${money(it.price)}</div>
           <div class="qty"><button type="button" data-dec="${l.v}" aria-label="Menos">−</button><span>${l.q}</span><button type="button" data-inc="${l.v}" aria-label="Más">+</button></div></div>
         <button class="rm" type="button" data-rm="${l.v}">${t('remove')}</button></div>`; }).join('')
-      : `<div class="empty"><p class="addr" style="margin:0">${t('empty')}</p><p style="margin:0">${t('emptySub')}</p><a class="btn btn-ghost btn-sm" href="#coleccion" id="emptyGo">${t('seeColl')}</a></div>`;
+      : (() => {
+          const p = store.get('florea-pending', null), recent = p && Date.now() - p.at < 2 * 864e5 && p.cart.some(l => CAT[l.v]);
+          return recent
+            ? `<div class="empty"><p class="addr" style="margin:0">${t('sentTitle')}</p><p style="margin:0">${t('sentSub')}</p>
+                 <button class="btn btn-ghost btn-sm" type="button" id="restoreCart">${t('restore')}</button>
+                 <a class="btn btn-ghost btn-sm" href="#coleccion" id="emptyGo">${t('seeColl')}</a></div>`
+            : `<div class="empty"><p class="addr" style="margin:0">${t('empty')}</p><p style="margin:0">${t('emptySub')}</p><a class="btn btn-ghost btn-sm" href="#coleccion" id="emptyGo">${t('seeColl')}</a></div>`;
+        })();
     $('orderFields').hidden = !cart.length; $('drFoot').hidden = !cart.length;
     $('subtotal').textContent = money(cartTotal());
     $('checkout').textContent = CHECKOUT_LIVE ? t('checkoutLive') : t('checkoutWa');
@@ -1313,7 +1322,8 @@
   }
   $('lines').onclick = e => {
     const b = e.target.closest('button, a'); if (!b) return;
-    if (b.id === 'emptyGo') { closeCart(); return; }
+    if (b.id === 'emptyGo') { closeCart(); store.set('florea-pending', null); return; }
+    if (b.id === 'restoreCart') { const p = store.get('florea-pending', null); if (p) cart = p.cart.filter(l => CAT[l.v]); store.set('florea-pending', null); saveCart(); renderCart(); syncDel(); return; }
     const v = b.dataset.inc ?? b.dataset.dec ?? b.dataset.rm; const l = cart.find(x => x.v === v); if (!l) return;
     if ('inc' in b.dataset) l.q++; else if ('dec' in b.dataset) l.q--; else l.q = 0;
     cart = cart.filter(x => x.q > 0); saveCart(); renderCart();
@@ -1346,14 +1356,19 @@
     const err = d !== 'pickup' && !addr ? t('errAddr') : (!date || date < $('fDate').min) ? t('errDate') : '';
     $('err').textContent = err; $('err').hidden = !err; if (err) return;
     const fun = hasFun();
-    const info = [['Entrega', DEL_LABEL[d]], ['Fecha', date], ['Dirección', d === 'pickup' ? '' : addr],
+    // every key is always sent (empty when unused) so Shopify overwrites anything left from an earlier attempt
+    const all = [['Entrega', DEL_LABEL[d]], ['Fecha', date], ['Dirección', d === 'pickup' ? '' : addr],
       ['Funeraria', fun ? $('fHome').value.trim() : ''], ['Hora del servicio', fun ? $('fTime').value : ''], ['En memoria de', fun ? $('fMemory').value.trim() : ''],
-      ['Para', to], [fun ? 'Listón / tarjeta' : 'Mensaje tarjeta', msg], ['De parte de', from]].filter(x => x[1]);
+      ['Para', to], ['Mensaje tarjeta', fun ? '' : msg], ['Listón / tarjeta', fun ? msg : ''], ['De parte de', from]];
+    const info = all.filter(x => x[1]);
     if (CHECKOUT_LIVE) {
       const linesQ = cart.map(l => l.v + ':' + l.q).join(',');
       const q = new URLSearchParams(); q.set('note', info.map(x => x.join(': ')).join(' | '));
-      info.forEach(([k, v]) => q.set(`attributes[${k}]`, v));
-      go(`${SHOP}/cart/${linesQ}?${q}`, t('checkoutLive'));
+      all.forEach(([k, v]) => q.set(`attributes[${k}]`, v));
+      // The order is finished on Shopify, so empty this cart; keep a copy for 2 days in case the payment wasn't completed.
+      const handOff = () => { store.set('florea-pending', { at: Date.now(), cart }); cart = []; saveCart(); renderCart(); };
+      if (go(`${SHOP}/cart/${linesQ}?${q}`, t('checkoutLive'))) handOff();
+      else $('goLink').onclick = () => setTimeout(handOff, 300);
     } else {
       const txt = [t('hello') + ', quiero hacer este pedido:', '',
         ...cart.map(l => `• ${l.q} × ${CAT[l.v].name} (${money(CAT[l.v].price)})`),
@@ -1364,8 +1379,9 @@
   // Open in a new tab; if the browser blocks it, show a real link to tap.
   function go(url, label) {
     let w = null; try { w = window.open(url, '_blank'); } catch (e) {}
-    if (w) { try { w.opener = null; } catch (e) {} $('goLink').hidden = true; return; }
-    $('goLink').href = url; $('goLink').textContent = label + ' →'; $('goLink').hidden = false;
+    if (w) { try { w.opener = null; } catch (e) {} $('goLink').hidden = true; return true; }
+    $('goLink').href = url; $('goLink').textContent = label + ' →'; $('goLink').hidden = false; $('goLink').onclick = null;
+    return false;
   }
 
   let lastFocus = null;
