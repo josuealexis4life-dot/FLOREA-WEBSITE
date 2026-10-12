@@ -15,7 +15,43 @@
 <meta property="og:image:alt" content="FLORÉA · Florería de lujo en Phoenix, Arizona">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FLORÉA">
-<meta name="twitter:card" content="summary_large_image"><title>FLORÉA Phoenix</title>
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Florist",
+  "name": "FLORÉA",
+  "alternateName": "Florea Elegancias",
+  "description": "Florería de lujo en Phoenix, Arizona. Arreglos florales, ramos de rosas, colección funeraria y entrega el mismo día.",
+  "url": "https://floreaelegancias.com/",
+  "logo": "https://floreaelegancias.com/images/logo-hero.png",
+  "image": "https://floreaelegancias.com/images/og-florea.jpg",
+  "telephone": "+1-602-900-2348",
+  "email": "floreaphoenix@gmail.com",
+  "priceRange": "$$",
+  "currenciesAccepted": "USD",
+  "paymentAccepted": "Credit Card, Apple Pay, Google Pay, Shop Pay",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "4013 N 75th Ave",
+    "addressLocality": "Phoenix",
+    "addressRegion": "AZ",
+    "postalCode": "85033",
+    "addressCountry": "US"
+  },
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "08:00", "closes": "20:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "10:00", "closes": "20:00" }
+  ],
+  "areaServed": ["Phoenix", "Glendale", "Goodyear", "Tolleson", "Laveen"],
+  "sameAs": [
+    "https://www.facebook.com/florea.az",
+    "https://www.instagram.com/florea.az",
+    "https://www.tiktok.com/@florea.az",
+    "https://www.pinterest.com/floreaazy"
+  ]
+}
+</script><title>FLORÉA · Florería en Phoenix, AZ | Arreglos florales y entrega el mismo día</title>
 <meta name="description" content="FLORÉA, florería de lujo en Phoenix AZ. Arreglos florales, colección funeraria, entrega el mismo día, recoger en tienda o Uber Direct.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1489,6 +1525,7 @@
       const linesQ = cart.map(l => l.v + ':' + l.q).join(',');
       const q = new URLSearchParams(); q.set('note', info.map(x => x.join(': ')).join(' | '));
       all.forEach(([k, v]) => q.set(`attributes[${k}]`, v));
+      q.set('locale', lang); // checkout opens in the visitor's language (Spanish is published in Shopify)
       // The order is finished on Shopify, so empty this cart; keep a copy for 2 days in case the payment wasn't completed.
       const handOff = () => { store.set('florea-pending', { at: Date.now(), cart }); cart = []; saveCart(); renderCart(); };
       if (go(`${SHOP}/cart/${linesQ}?${q}`, t('checkoutLive'))) handOff();
